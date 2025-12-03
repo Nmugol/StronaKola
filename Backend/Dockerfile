@@ -4,6 +4,9 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Create the static directory for serving static files and uploads
+RUN mkdir static
+
 # Copy the requirements file into the container
 COPY requirements.txt .
 
@@ -23,3 +26,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Run app.main:app when the container launches
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
