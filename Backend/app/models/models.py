@@ -1,6 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.orm import relationship
 from ..db.database import Base
+import enum
+
+
+class Platforms(str, enum.Enum):
+    WIN = "Windows"
+    LINUX = "Linux"
+    MACOS = "MacOS"
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -12,6 +20,7 @@ class Event(Base):
 
     images = relationship("Image", back_populates="event")
 
+
 class Project(Base):
     __tablename__ = "projects"
 
@@ -21,17 +30,21 @@ class Project(Base):
     technologies = Column(String)
 
     images = relationship("Image", back_populates="project")
+    executable = relationship("ExecutableFile", back_populates="project")
+    files = relationship("ProjectFiles", back_populates="project")
+
 
 class Image(Base):
     __tablename__ = "images"
 
     id = Column(Integer, primary_key=True, index=True)
     file_path = Column(String, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"))
-    project_id = Column(Integer, ForeignKey("projects.id"))
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
 
     event = relationship("Event", back_populates="images")
     project = relationship("Project", back_populates="images")
+
 
 class GroupInfo(Base):
     __tablename__ = "group_info"
@@ -39,3 +52,25 @@ class GroupInfo(Base):
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String)
     contact = Column(String)
+
+
+class ExecutableFile(Base):
+    __tablename__ = "executable_file"
+
+    id = Column(Integer, primary_key=True, index=True)
+    file_path = Column(String, index=True)
+    version = Column(String)
+    platform = Column(SAEnum(Platforms))
+    project_id = Column(Integer, ForeignKey("projects.id"))
+
+    project = relationship("Project", back_populates="executable")
+
+
+class ProjectFiles(Base):
+    __tablename__ = "project_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    file_path = Column(String, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+
+    project = relationship("Project", back_populates="files")
