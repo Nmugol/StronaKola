@@ -41,9 +41,6 @@ async def upload_image(
     project_id: Optional[int] = Form(None),
     db: Session = Depends(get_db),
 ):
-    """
-    Admin: Przesyła zdjęcie do Eventu lub Projektu.
-    """
     file_name = file.filename or "image"
     file_extension = file_name.split(".")[-1]
     if file_extension.lower() not in ["jpg", "jpeg", "png", "gif", "webp"]:

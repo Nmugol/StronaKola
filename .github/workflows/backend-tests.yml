@@ -55,4 +55,6 @@ jobs:
       # 7. Uruchom testy
       - name: Run pytest
         # Dzięki working-directory, pytest zobaczy 'app' i 'tests' tak jak trzeba
+        env:
+          PYTHONPATH: .
         run: uv run pytest

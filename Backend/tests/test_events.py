@@ -67,12 +67,12 @@ def test_update_event(client: TestClient, db: Session):
         f"/api/admin/events/{event.id}",
         json={
             "name": "Updated Event",
-            "description": "Updated Description",  # Dodaj brakujące pola
-            "date": datetime.now().isoformat(),  # Dodaj brakujące pola
+            "description": "Updated Description",
+            "date": datetime.now().isoformat(),
         },
         headers={"X-API-Key": "test_api_key"},
     )
-    assert response.status_code == 200  # Teraz powinno przejść
+    assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Updated Event"
 
