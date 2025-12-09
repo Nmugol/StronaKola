@@ -1,0 +1,58 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    # Uruchom tylko, gdy zmiany są w folderze Backend
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    branches: [ "main", "master" ]
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+
+jobs:
+  test:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    
+    # KLUCZOWE: Ustawiamy domyślny katalog roboczy na Backend
+    defaults:
+      run:
+        working-directory: ./Backend
+
+    steps:
+      # 1. Pobierz kod
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Zainstaluj uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "Backend/requirements.txt" # Cache na podstawie pliku w podkatalogu
+
+      # 3. Zainstaluj Pythona
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      # 4. Stwórz venv (wewnątrz folderu Backend)
+      - name: Create virtual environment
+        run: uv venv
+
+      # 5. Zainstaluj zależności
+      - name: Install dependencies
+        # uv automatycznie szuka requirements.txt w bieżącym katalogu (czyli Backend)
+        run: uv pip install -r requirements.txt
+
+      # 6. Zainstaluj narzędzia testowe (jeśli nie ma ich w requirements.txt)
+      - name: Install test dependencies
+        run: uv pip install pytest httpx
+
+      # 7. Uruchom testy
+      - name: Run pytest
+        # Dzięki working-directory, pytest zobaczy 'app' i 'tests' tak jak trzeba
+        run: uv run pytest
