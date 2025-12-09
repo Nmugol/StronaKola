@@ -1,7 +1,9 @@
-from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Optional
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy.ext.declarative import ConcreteBase
 
 # 1. Definicja Enuma (musi być identyczna jak w models.py lub zaimportowana)
 
@@ -10,6 +12,7 @@ class Platforms(str, Enum):
     WIN = "Windows"
     LINUX = "Linux"
     MACOS = "MacOS"
+
 
 # --- SCHEMATY DLA PLIKÓW PROJEKTOWYCH ---
 
@@ -25,9 +28,8 @@ class ProjectFilesCreate(ProjectFilesBase):
 class ProjectFiles(ProjectFilesBase):
     id: int
     project_id: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
 # --- SCHEMATY DLA PLIKÓW WYKONYWALNYCH ---
 
@@ -45,9 +47,8 @@ class ExecutableFileCreate(ExecutableFileBase):
 class ExecutableFile(ExecutableFileBase):
     id: int
     project_id: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
 # --- SCHEMATY DLA ZDJĘĆ ---
 
@@ -65,9 +66,8 @@ class Image(ImageBase):
     id: int
     event_id: Optional[int] = None
     project_id: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
 # --- SCHEMATY DLA EVENTÓW ---
 
@@ -86,9 +86,8 @@ class Event(EventBase):
     id: int
     # Domyślnie pusta lista, jeśli nie ma zdjęć
     images: List[Image] = []
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
 # --- SCHEMATY DLA PROJEKTÓW ---
 
@@ -97,6 +96,7 @@ class ProjectBase(BaseModel):
     name: str
     description: str
     technologies: str
+    year: Optional[int] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -109,14 +109,14 @@ class Project(ProjectBase):
     images: List[Image] = []
     executable: List[ExecutableFile] = []
     files: List[ProjectFiles] = []
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
 
 # --- SCHEMATY DLA INFO ---
 
 
 class GroupInfoBase(BaseModel):
+    name: str
     description: str
     contact: str
 
@@ -127,6 +127,4 @@ class GroupInfoCreate(GroupInfoBase):
 
 class GroupInfo(GroupInfoBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

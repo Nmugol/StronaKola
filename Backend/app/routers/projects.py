@@ -1,5 +1,6 @@
 import os
 import shutil
+from fileinput import filename
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -20,7 +21,15 @@ os.makedirs(EXE_DIR, exist_ok=True)
 
 
 def save_file(file: UploadFile, destination_dir: str) -> str:
-    file_path = os.path.join(destination_dir, file.filename)
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+
+    # NAPRAWA: Zabezpieczenie na wypadek braku nazwy pliku
+    file_name = file.filename or "unknown_file"
+
+    # Teraz filename jest na pewno typu 'str', więc join nie zgłosi błędu
+    file_path = os.path.join(destination_dir, file_name)
+
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     return file_path
@@ -121,7 +130,8 @@ async def upload_project_file(
         raise HTTPException(status_code=404, detail="Project not found")
 
     allowed_extensions = ["zip", "rar", "7z", "tar", "gz", "bz2"]
-    file_ext = file.filename.split(".")[-1].lower()
+    file_name = file.filename or "unknown_file"
+    file_ext = file_name.split(".")[-1].lower()
     if file_ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Only archive files allowed.")
 
@@ -144,8 +154,8 @@ def delete_project_file(file_id: int, db: Session = Depends(get_db)):
     if not db_file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    if os.path.exists(db_file.file_path):
-        os.remove(db_file.file_path)
+    if os.path.exists(str(db_file.file_path)):
+        os.remove(str(db_file.file_path))
 
     db.delete(db_file)
     db.commit()
@@ -163,12 +173,12 @@ def download_project_file_admin(file_id: int, db: Session = Depends(get_db)):
     db_file = (
         db.query(models.ProjectFiles).filter(models.ProjectFiles.id == file_id).first()
     )
-    if not db_file or not os.path.exists(db_file.file_path):
+    if not db_file or not os.path.exists(str(db_file.file_path)):
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(
-        path=db_file.file_path,
-        filename=os.path.basename(db_file.file_path),
+        path=str(db_file.file_path),
+        filename=os.path.basename(str(db_file.file_path)),
         media_type="application/octet-stream",
     )
 
@@ -223,8 +233,8 @@ def delete_executable(exe_id: int, db: Session = Depends(get_db)):
     if not db_exe:
         raise HTTPException(status_code=404, detail="Executable not found")
 
-    if os.path.exists(db_exe.file_path):
-        os.remove(db_exe.file_path)
+    if os.path.exists(str(db_exe.file_path)):
+        os.remove(str(db_exe.file_path))
 
     db.delete(db_exe)
     db.commit()
@@ -245,11 +255,11 @@ def download_executable_public(exe_id: int, db: Session = Depends(get_db)):
     if not db_exe:
         raise HTTPException(status_code=404, detail="Executable not found")
 
-    if not os.path.exists(db_exe.file_path):
+    if not os.path.exists(str(db_exe.file_path)):
         raise HTTPException(status_code=404, detail="File missing on server")
 
     return FileResponse(
-        path=db_exe.file_path,
-        filename=os.path.basename(db_exe.file_path),
+        path=str(db_exe.file_path),
+        filename=os.path.basename(str(db_exe.file_path)),
         media_type="application/octet-stream",
     )

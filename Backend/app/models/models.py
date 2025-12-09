@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SAEnum
-from sqlalchemy.orm import relationship
-from ..db.database import Base
 import enum
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.orm import relationship
+
+from ..db.database import Base
 
 
 class Platforms(str, enum.Enum):
@@ -28,6 +31,7 @@ class Project(Base):
     name = Column(String, index=True)
     description = Column(String)
     technologies = Column(String)
+    year = Column(Integer, nullable=True)
 
     images = relationship("Image", back_populates="project")
     executable = relationship("ExecutableFile", back_populates="project")
@@ -50,6 +54,7 @@ class GroupInfo(Base):
     __tablename__ = "group_info"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
     description = Column(String)
     contact = Column(String)
 

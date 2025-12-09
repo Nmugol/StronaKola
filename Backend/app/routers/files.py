@@ -1,8 +1,9 @@
 import os
 import shutil
+from this import s
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from ..dependencies import get_db, verify_api_key
@@ -20,7 +21,7 @@ os.makedirs(IMG_DIR, exist_ok=True)
 def save_file(file: UploadFile, destination_dir: str) -> str:
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
-    file_path = os.path.join(destination_dir, file.filename)
+    file_path = os.path.join(destination_dir, str(file.filename))
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     return file_path
@@ -43,7 +44,8 @@ async def upload_image(
     """
     Admin: Przesyła zdjęcie do Eventu lub Projektu.
     """
-    file_extension = file.filename.split(".")[-1]
+    file_name = file.filename or "image"
+    file_extension = file_name.split(".")[-1]
     if file_extension.lower() not in ["jpg", "jpeg", "png", "gif", "webp"]:
         raise HTTPException(
             status_code=400, detail="Invalid file type. Only images allowed."
@@ -80,8 +82,8 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
     if not db_image:
         raise HTTPException(status_code=404, detail="Image not found")
 
-    if os.path.exists(db_image.file_path):
-        os.remove(db_image.file_path)
+    if os.path.exists(str(db_image.file_path)):
+        os.remove(str(db_image.file_path))
 
     db.delete(db_image)
     db.commit()
